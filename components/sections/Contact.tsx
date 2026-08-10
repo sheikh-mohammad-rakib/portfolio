@@ -15,7 +15,7 @@
 //   - Import from motion/react
 
 import { useRef } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "motion/react";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionTemplate } from "motion/react";
 
 // ── Placeholder data ──────────────────────────────────────────────────────────
 const EYEBROW  = "Get In Touch";
@@ -66,29 +66,21 @@ function FillHeading({ text }: { text: string }) {
     restDelta: 0.001,
   });
 
-  // Map 0→1 scroll progress to backgroundSize "0% 100%" → "100% 100%"
-  // Motion best-practices: useTransform result only used in style, never .get() in render
-  const backgroundSize = useTransform(
-    smoothProgress,
-    [0, 1],
-    ["0% 100%", "100% 100%"]
-  );
+  // Use a template string to dynamically set the color stop percentage
+  const fillPercentage = useTransform(smoothProgress, [0, 1], ["0%", "100%"]);
+  const backgroundImage = useMotionTemplate`linear-gradient(to right, #1A4A2E ${fillPercentage}, #111111 ${fillPercentage})`;
 
   return (
     <motion.h2
       ref={headingRef}
-      // Text is rendered as a gradient: green fill layer behind #111111 base
-      // background-clip: text clips the gradient to the letterforms only
-      // background-repeat: no-repeat keeps the fill from tiling
+      // Text color is transparent so the background gradient shows through.
+      // The gradient has a hard stop between the green fill and the dark gray base.
       style={{
-        backgroundImage: `linear-gradient(to right, #1A4A2E, #1A4A2E)`,
+        backgroundImage,
         backgroundClip: "text",
         WebkitBackgroundClip: "text",         // Safari
-        color: "#111111",                     // base colour — shows before fill arrives
-        backgroundRepeat: "no-repeat",
-        backgroundSize,                       // MotionValue drives this
-        // When fill is 100% the green gradient fully covers the text colour.
-        // transition to green is smooth because backgroundSize is spring-animated.
+        color: "transparent",
+        WebkitTextFillColor: "transparent",
       }}
       className="font-serif text-4xl md:text-6xl lg:text-7xl font-medium leading-[1.05] tracking-tight mb-8 max-w-3xl"
     >
