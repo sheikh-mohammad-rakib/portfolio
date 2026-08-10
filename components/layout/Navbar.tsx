@@ -48,31 +48,33 @@ export default function Navbar() {
 
   // ── GSAP: bg-blur transition when hero section leaves viewport ────────────
   // Preserved from the original Navbar. Scoped to navRef for safe cleanup.
-  useGSAP(
-    () => {
-      ScrollTrigger.create({
-        trigger: "#hero",
-        start: "bottom top",
-        onEnter: () => {
-          gsap.to(navRef.current, {
-            backgroundColor: "rgba(248,248,246,0.92)",
-            backdropFilter: "blur(12px)",
-            duration: 0.4,
-            ease: "power2.out",
-          });
-        },
-        onLeaveBack: () => {
-          gsap.to(navRef.current, {
-            backgroundColor: "transparent",
-            backdropFilter: "blur(0px)",
-            duration: 0.3,
-            ease: "power2.in",
-          });
-        },
-      });
-    },
-    { scope: navRef }
-  );
+  useGSAP(() => {
+    // document.querySelector avoids the scope restriction — #hero is outside the nav.
+    // scope is not set here since we only animate navRef.current (no string selectors).
+    const heroEl = document.querySelector("#hero");
+    if (!heroEl) return;
+
+    ScrollTrigger.create({
+      trigger: heroEl,           // element reference, not string
+      start: "bottom top",
+      onEnter: () => {
+        gsap.to(navRef.current, {
+          backgroundColor: "rgba(248,248,246,0.92)",
+          backdropFilter: "blur(12px)",
+          duration: 0.4,
+          ease: "power2.out",
+        });
+      },
+      onLeaveBack: () => {
+        gsap.to(navRef.current, {
+          backgroundColor: "transparent",
+          backdropFilter: "blur(0px)",
+          duration: 0.3,
+          ease: "power2.in",
+        });
+      },
+    });
+  });
 
   return (
     // motion.nav — animates y position based on scroll direction
