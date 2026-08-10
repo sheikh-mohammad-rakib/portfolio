@@ -6,8 +6,8 @@
 // each word wrapped in a clip container, animates from y:100%→0 (rises up)
 // Reference: https://examples.motion.dev/react/split-text
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform, useSpring } from "motion/react";
+import { useRef, useCallback } from "react";
+import { motion, useScroll, useTransform, useSpring, useMotionValue, animate } from "motion/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -80,6 +80,70 @@ const containerVariants = {
     transition: { staggerChildren: 0.12, delayChildren: 0.9 }, // starts after H1 reveal finishes
   },
 };
+
+// ── HoldCTA: press-and-hold primary button ───────────────────────────────────
+// MCP confirmed APIs: motion, useMotionValue, useTransform (grade: B)
+// Reference: https://examples.motion.dev/react/hold-to-confirm
+//
+// Mechanism:
+//   - progress MotionValue (0→1) drives the fill overlay width via useTransform
+//   - pointerdown  → animate(progress, 1, { duration: 1.2 })
+//   - pointerup / pointerleave / blur → animation cancelled, progress resets to 0
+//   - on complete → navigate to href
+//
+// Property ownership: Motion owns `width` on the overlay span.
+// The button keeps its own whileHover for the cursor affordance.
+function HoldCTA({ href, label }: { href: string; label: string }) {
+  const progress = useMotionValue(0);
+  const fillWidth = useTransform(progress, [0, 1], ["0%", "100%"]);
+  const animControls = useRef<ReturnType<typeof animate> | null>(null);
+
+  const start = useCallback(() => {
+    // Cancel any running animation first (e.g. rapid re-press)
+    animControls.current?.stop();
+    animControls.current = animate(progress, 1, {
+      duration: 1.2,
+      ease: "linear",
+      onComplete: () => {
+        // Navigate after full hold completes
+        window.location.href = href;
+      },
+    });
+  }, [href, progress]);
+
+  const cancel = useCallback(() => {
+    animControls.current?.stop();
+    // Snap back instantly — feels clean rather than drifting back
+    animate(progress, 0, { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] });
+  }, [progress]);
+
+  return (
+    <motion.a
+      href={href}
+      // Prevent immediate navigation — hold is required for activation
+      onClick={(e) => e.preventDefault()}
+      // Hold interaction — pointer events for mouse + touch
+      onPointerDown={start}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onBlur={cancel}
+      // Preserve keyboard accessibility: Enter key still navigates directly
+      onKeyDown={(e) => { if (e.key === "Enter") { window.location.href = href; } }}
+      className="relative inline-flex items-center gap-2 bg-[#1A4A2E] text-white px-8 py-4 text-sm font-medium tracking-wide overflow-hidden select-none cursor-pointer"
+      whileHover={{ backgroundColor: "#153D25" }}
+      style={{ touchAction: "none" }} // prevent scroll interrupting hold on mobile
+    >
+      {/* Fill overlay — grows left-to-right as you hold */}
+      <motion.span
+        aria-hidden="true"
+        className="absolute inset-0 bg-[#0D3520] origin-left pointer-events-none"
+        style={{ width: fillWidth }}
+      />
+      {/* Label — sits above the fill overlay */}
+      <span className="relative z-10">{label} &rarr;</span>
+    </motion.a>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -209,15 +273,8 @@ export default function Hero() {
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4">
-            <motion.a
-              href="#work"
-              className="inline-flex items-center gap-2 bg-[#1A4A2E] text-white px-8 py-4 text-sm font-medium tracking-wide"
-              whileHover={{ backgroundColor: "#153D25" }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ duration: 0.2 }}
-            >
-              {CTA_PRIMARY} &rarr;
-            </motion.a>
+            {/* Primary CTA — hold-to-confirm interaction */}
+            <HoldCTA href="#work" label={CTA_PRIMARY} />
 
             <motion.a
               href="#contact"
