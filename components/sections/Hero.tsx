@@ -7,7 +7,7 @@
 // Reference: https://examples.motion.dev/react/split-text
 
 import { useRef } from "react";
-import { motion } from "motion/react";
+import { motion, useScroll, useTransform, useSpring } from "motion/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -87,7 +87,22 @@ export default function Hero() {
   const containerRef = useRef<HTMLElement>(null);
   const bgPatternRef = useRef<HTMLDivElement>(null);
 
-  // ── GSAP: parallax scrub on background SVG pattern ───────────────────────
+  // ── Motion: scroll-zoom on the dot-grid background ───────────────────────
+  // useScroll scoped to the hero section — progress 0 (top) → 1 (bottom)
+  // Motion owns `scale`, GSAP owns `yPercent` — no property conflict.
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  // Scale 1 → 1.12 as hero scrolls out — subtle zoom-away feel
+  const rawScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
+
+  // Spring smoothing for organic feel (faster than fill-text, no lag on load)
+  const scale = useSpring(rawScale, { stiffness: 80, damping: 20, restDelta: 0.001 });
+
+  // ── GSAP: parallax scrub on background SVG pattern (yPercent) ────────────
+  // GSAP and Motion co-exist: each owns different CSS properties.
   useGSAP(
     () => {
       gsap.to(bgPatternRef.current, {
@@ -110,33 +125,40 @@ export default function Hero() {
       ref={containerRef}
       className="relative min-h-screen flex flex-col items-center justify-center px-8 md:px-16 overflow-hidden"
     >
-      {/* ── SVG background dot-grid — GSAP parallax ──────────────────────── */}
-      <div
-        ref={bgPatternRef}
+      {/* ── SVG background dot-grid — Motion scale + GSAP parallax ─────────── */}
+      {/* Motion.div: owns `scale` (scroll-zoom 1→1.12)                         */}
+      {/* Inner div ref: GSAP owns `yPercent` (parallax -30%)                   */}
+      <motion.div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none will-change-transform"
+        style={{ scale }}     // Motion MotionValue — zoom as hero scrolls away
       >
-        <svg
-          width="100%"
-          height="130%"
-          xmlns="http://www.w3.org/2000/svg"
-          className="opacity-[0.04]"
+        <div
+          ref={bgPatternRef}  // GSAP target for yPercent parallax
+          className="absolute inset-0"
         >
-          <defs>
-            <pattern
-              id="dot-grid"
-              x="0"
-              y="0"
-              width="32"
-              height="32"
-              patternUnits="userSpaceOnUse"
-            >
-              <circle cx="1" cy="1" r="1" fill="#111111" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#dot-grid)" />
-        </svg>
-      </div>
+          <svg
+            width="100%"
+            height="130%"
+            xmlns="http://www.w3.org/2000/svg"
+            className="opacity-[0.04]"
+          >
+            <defs>
+              <pattern
+                id="dot-grid"
+                x="0"
+                y="0"
+                width="32"
+                height="32"
+                patternUnits="userSpaceOnUse"
+              >
+                <circle cx="1" cy="1" r="1" fill="#111111" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dot-grid)" />
+          </svg>
+        </div>
+      </motion.div>
 
       {/* ── Main content ─────────────────────────────────────────────────── */}
       <div className="relative z-10 w-full max-w-5xl">
