@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.agents
+.gemini
+Design.md
+DoNotDoAgain.md
+example.md 
+gsap-llms.txt 
+WORKFLOW.md 
+skills-lock.json
