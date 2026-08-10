@@ -1,12 +1,19 @@
 "use client";
 
-// Phase 4b — Motion whileHover on cards + GSAP scroll entry timeline
-// gsap-timeline skill: gsap.timeline() drives staggered card entries
-// motion/react: whileHover for image scale micro-interaction
+// Scroll Image Reveal — Projects section
+// Pattern: Motion useScroll (per-element) + useTransform → clipPath curtain + scale
+// MCP confirmed: motion, useScroll, useTransform (MotionScore grade: A)
+// Reference: https://examples.motion.dev/react/scroll-image-reveal
+//
+// Each project image gets its own scroll-progress MotionValue.
+// As the image enters the viewport, a clip-path "curtain" slides up,
+// revealing the image from bottom-to-top. Simultaneously, the image
+// scales from 1.1 → 1.0 (zooms out into place).
+// Motion best-practices: MotionValues only read inside useTransform (not render).
 
 import { useRef } from "react";
 import Image from "next/image";
-import { motion } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -46,14 +53,82 @@ const PROJECTS = [
   },
 ];
 
+// ── RevealImage: per-image scroll-linked clip reveal ─────────────────────────
+// Isolated component so each image gets its own containerRef and MotionValues.
+// Motion best-practices: useScroll with target ref scopes progress to that element.
+function RevealImage({
+  src,
+  alt,
+}: {
+  src: string;
+  alt: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll progress for THIS element (0 = top of element at bottom of viewport,
+  // 1 = bottom of element at top of viewport)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],   // full travel range through viewport
+  });
+
+  // Curtain clip-path: starts fully covering the image (inset 100% bottom),
+  // reveals to fully uncovered (inset 0%) as element scrolls into view
+  // The reveal happens in the first 40% of the element's scroll travel
+  const clipPath = useTransform(
+    scrollYProgress,
+    [0, 0.4],
+    ["inset(100% 0% 0% 0%)", "inset(0% 0% 0% 0%)"]
+  );
+
+  // Subtle scale: image starts slightly zoomed in (1.12) and settles to 1
+  // in sync with the clip reveal — creates depth and cinematic feel
+  const scale = useTransform(
+    scrollYProgress,
+    [0, 0.4],
+    [1.12, 1]
+  );
+
+  return (
+    // Outer div: the clip mask container — overflow hidden, holds the curtain
+    <div
+      ref={containerRef}
+      className="aspect-[4/3] overflow-hidden bg-[#F0F0EC] relative"
+    >
+      {/* motion.div: the clipped layer — clipPath animates from top */}
+      <motion.div
+        className="absolute inset-0"
+        style={{ clipPath }}
+      >
+        {/* motion.div: the image itself — scales out as it reveals */}
+        <motion.div
+          className="absolute inset-0"
+          style={{ scale }}
+          // whileHover: preserved from original (image scales up on hover)
+          whileHover={{ scale: 1.04 }}
+          transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] }}
+        >
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 33vw"
+          />
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Projects() {
   const sectionRef = useRef<HTMLElement>(null);
 
-  // ── GSAP: timeline drives staggered card entry on scroll ─────────────────
-  // gsap-timeline skill: timeline sequences animations precisely
-  // gsap-scrolltrigger skill: trigger on section entering viewport
+  // ── GSAP: staggered card entry (opacity + y) — cards animate in first ────
+  // Image reveal then plays as user scrolls through each card.
+  // The card-level animation and image-level reveal are independent.
   useGSAP(
     () => {
       gsap.set("[data-project-card]", { opacity: 0, y: 40 });
@@ -71,7 +146,7 @@ export default function Projects() {
         y: 0,
         duration: 0.7,
         ease: "power3.out",
-        stagger: 0.14,    // gsap-core: stagger between each card
+        stagger: 0.14,
       });
     },
     { scope: sectionRef }
@@ -108,20 +183,11 @@ export default function Projects() {
                 </span>
               </div>
 
-              {/* Image — Motion whileHover scale (Motion best-practices: 2% scale) */}
-              <motion.div
-                className="aspect-[4/3] overflow-hidden bg-[#F0F0EC] relative"
-                whileHover={{ scale: 1.015 }}
-                transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-              >
-                <Image
-                  src={project.image}
-                  alt={`${project.title} project screenshot`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
-              </motion.div>
+              {/* Image — scroll-linked clip-path reveal + scale */}
+              <RevealImage
+                src={project.image}
+                alt={`${project.title} project screenshot`}
+              />
 
               {/* Card body */}
               <div className="px-5 py-5 flex flex-col gap-5 flex-1">
