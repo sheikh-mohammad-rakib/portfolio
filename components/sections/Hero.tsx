@@ -170,7 +170,7 @@ export default function Hero() {
   useGSAP(
     () => {
       gsap.to(bgPatternRef.current, {
-        yPercent: -30,
+        yPercent: -50,
         ease: "none",
         scrollTrigger: {
           trigger: containerRef.current,
@@ -205,18 +205,18 @@ export default function Hero() {
             width="100%"
             height="130%"
             xmlns="http://www.w3.org/2000/svg"
-            className="opacity-[0.04]"
+            className="opacity-[0.18]"
           >
             <defs>
               <pattern
                 id="dot-grid"
                 x="0"
                 y="0"
-                width="32"
-                height="32"
+                width="28"
+                height="28"
                 patternUnits="userSpaceOnUse"
               >
-                <circle cx="1" cy="1" r="1" fill="#111111" />
+                <circle cx="1" cy="1" r="1.5" fill="#111111" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#dot-grid)" />
