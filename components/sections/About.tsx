@@ -43,7 +43,7 @@ export default function About() {
           variants={fadeUp}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
+          viewport={{ once: false, margin: "-80px" }}
         >
           {EYEBROW}
         </motion.p>
@@ -56,7 +56,7 @@ export default function About() {
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-80px" }}
+            viewport={{ once: false, margin: "-80px" }}
             transition={{ delay: 0.1 }}
           >
             <h2 className="font-serif text-3xl md:text-4xl font-medium italic text-[#111111] leading-[1.2] mb-8 border-b border-[#D8D8D4] pb-8">
@@ -77,7 +77,7 @@ export default function About() {
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-80px" }}
+            viewport={{ once: false, margin: "-80px" }}
             transition={{ delay: 0.22 }}
           >
             {/* Avatar */}

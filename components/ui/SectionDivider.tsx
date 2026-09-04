@@ -53,7 +53,7 @@ export default function SectionDivider({
   const inViewProps = {
     initial: { pathLength: 0, opacity: 0 },
     whileInView: { pathLength: 1, opacity: 1 },
-    viewport: { once: true, margin: "-40px" },
+    viewport: { once: false, margin: "-40px" },
     transition: DRAW_TRANSITION(duration, delay),
   };
 
@@ -109,7 +109,7 @@ export default function SectionDivider({
             fill="none"
             initial={{ pathLength: 0, opacity: 0 }}
             whileInView={{ pathLength: 1, opacity: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
+            viewport={{ once: false, margin: "-40px" }}
             transition={DRAW_TRANSITION(0.6, delay)}
           />
           {/* Vertical left bar — draws after */}
@@ -120,7 +120,7 @@ export default function SectionDivider({
             fill="none"
             initial={{ pathLength: 0, opacity: 0 }}
             whileInView={{ pathLength: 1, opacity: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
+            viewport={{ once: false, margin: "-40px" }}
             transition={DRAW_TRANSITION(0.6, delay + 0.3)}
           />
         </svg>
@@ -151,7 +151,7 @@ export default function SectionDivider({
           fill="none"
           initial={{ pathLength: 0, opacity: 0 }}
           whileInView={{ pathLength: 1, opacity: 1 }}
-          viewport={{ once: true, margin: "-40px" }}
+          viewport={{ once: false, margin: "-40px" }}
           transition={DRAW_TRANSITION(0.6, delay)}
         />
         {/* Vertical right bar */}
@@ -162,7 +162,7 @@ export default function SectionDivider({
           fill="none"
           initial={{ pathLength: 0, opacity: 0 }}
           whileInView={{ pathLength: 1, opacity: 1 }}
-          viewport={{ once: true, margin: "-40px" }}
+          viewport={{ once: false, margin: "-40px" }}
           transition={DRAW_TRANSITION(0.6, delay + 0.3)}
         />
       </svg>

@@ -49,7 +49,8 @@ function SplitWords({
           <motion.span
             className={`inline-block ${className ?? ""}`}
             initial={{ y: "100%" }}
-            animate={{ y: "0%" }}
+            whileInView={{ y: "0%" }}
+            viewport={{ once: false, margin: "-40px" }}
             transition={{
               duration: 0.75,
               delay: delay + i * staggerDelay,
@@ -231,7 +232,8 @@ export default function Hero() {
         <motion.p
           className="text-xs font-sans font-medium tracking-widest uppercase text-[#1A4A2E] mb-6"
           initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, margin: "-40px" }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           {EYEBROW}
@@ -263,7 +265,8 @@ export default function Hero() {
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          animate="visible"
+          whileInView="visible"
+          viewport={{ once: false, margin: "-40px" }}
         >
           <motion.p
             variants={itemVariants}
@@ -293,7 +296,8 @@ export default function Hero() {
       <motion.div
         className="absolute bottom-10 left-8 md:left-16"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: false }}
         transition={{ delay: 1.6, duration: 0.6 }}
       >
         <p className="text-xs text-[#555550] tracking-widest uppercase">
